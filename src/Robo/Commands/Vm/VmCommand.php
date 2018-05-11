@@ -61,7 +61,7 @@ class VmCommand extends BltTasks {
    * @throws \Exception
    */
   public function vm($options = ['no-boot' => FALSE, 'provider' => 'virtualbox']) {
-    $this->$vagrantProvider = $options['provider'];
+    $this->vagrantProvider = $options['provider'];
 
     if (!$this->getInspector()->isDrupalVmConfigPresent()) {
       $confirm = $this->confirm("Drupal VM is not currently installed. Install it now? ", TRUE);
