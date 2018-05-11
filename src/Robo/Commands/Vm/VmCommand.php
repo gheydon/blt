@@ -26,6 +26,7 @@ class VmCommand extends BltTasks {
   protected $vmConfigDir;
   protected $vmConfigFile;
   protected $vmDir;
+  protected $vagrantProvider;
 
   /**
    * This hook will fire for all commands in this command file.
@@ -54,11 +55,14 @@ class VmCommand extends BltTasks {
    *
    * @aliases rdi vm
    *
-   * @options no-boot
+   * @option no-boot Do not boot the virtual machine.
+   * @option provider Specify which provider is to be used.
    *
    * @throws \Exception
    */
-  public function vm($options = ['no-boot' => FALSE]) {
+  public function vm($options = ['no-boot' => FALSE, 'provider' => 'virtualbox']) {
+    $this->$vagrantProvider = $options['provider'];
+
     if (!$this->getInspector()->isDrupalVmConfigPresent()) {
       $confirm = $this->confirm("Drupal VM is not currently installed. Install it now? ", TRUE);
       if ($confirm) {
@@ -173,8 +177,8 @@ class VmCommand extends BltTasks {
     $this->checkRequirements();
     $confirm = $this->confirm("Do you want to boot Drupal VM?", TRUE);
     if ($confirm) {
-      $this->say("In future, run <comment>VAGRANT_DEFAULT_PROVIDER=virtualbox vagrant up</comment> to boot the VM.");
-      $result = $this->taskExec("VAGRANT_DEFAULT_PROVIDER=virtualbox vagrant up")
+      $this->say("In future, run <comment>vagrant up --provider={$this->vagrantProvider}</comment> to boot the VM.");
+      $result = $this->taskExec("vagrant up --provider={$this->vagrantProvider}")
         ->dir($this->getConfigValue('repo.root'))
         ->printOutput(TRUE)
         ->run();
@@ -182,7 +186,7 @@ class VmCommand extends BltTasks {
         $this->logger->error("Drupal VM failed to boot. Read Drupal VM's previous output for more information.");
         $confirm = $this->confirm("Do you want to try to re-provision the VM? Sometimes this works.", TRUE);
         if ($confirm) {
-          $result = $this->taskExec("VAGRANT_DEFAULT_PROVIDER=virtualbox vagrant provision")
+          $result = $this->taskExec("VAGRANT_DEFAULT_PROVIDER={$this->vagrantProvider} vagrant provision")
             ->dir($this->getConfigValue('repo.root'))
             ->printOutput(TRUE)
             ->run();
